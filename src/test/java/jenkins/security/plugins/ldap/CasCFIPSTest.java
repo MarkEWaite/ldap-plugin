@@ -5,15 +5,15 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.ConfiguratorException;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.casc.misc.JenkinsConfiguredRule;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.casc.misc.junit.jupiter.WithJenkinsConfiguredWithCode;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import jenkins.security.FIPS140;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.jvnet.hudson.test.junit.jupiter.FlagExtension;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -25,23 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @WithJenkinsConfiguredWithCode
 class CasCFIPSTest {
 
-    private static String fipsFlag;
-
-    @BeforeAll
-    static void beforeAll() {
-        fipsFlag = System.setProperty(FIPS140.class.getName() + ".COMPLIANCE", "true");
-        System.setProperty("LDAP_PASSWORD", "SECRET");
-    }
-
-    @AfterAll
-    static void afterAll() {
-        if (fipsFlag != null) {
-            System.setProperty(FIPS140.class.getName() + ".COMPLIANCE", fipsFlag);
-        } else  {
-            System.clearProperty(FIPS140.class.getName() + ".COMPLIANCE");
-        }
-        System.clearProperty("LDAP_PASSWORD");
-    }
+    @RegisterExtension
+    @SuppressWarnings("unused")
+    private static final FlagExtension<String> fipsFlag = FlagExtension.systemProperty(FIPS140.class.getName() + ".COMPLIANCE", "true");
+    @RegisterExtension
+    @SuppressWarnings("unused")
+    private static final FlagExtension<String> passwordFlag = FlagExtension.systemProperty("LDAP_PASSWORD", "SECRET_Password_123");
 
     @Test
     @ConfiguredWithCode("casc_ldap_secure.yml")
